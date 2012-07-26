@@ -3,6 +3,9 @@ http://www.woothemes.com/flexslider/ - Copyright (c) 2012 WooThemes
 
 Documentation guides for properties and theming are coming soon. Shortly thereafter, the download builder will be released, where you can create minified FlexSlider scripts that contain only the properties you need. It's a brave new world.
 
+## Fork notes
+A fork of FlexSlider to allow for control over fade crossover
+
 ## General Notes
 FlexSlider is no longer licensed under the MIT license. FlexSlider now shares the common licensed used for all WooThemes themes, GPLv2.
 
