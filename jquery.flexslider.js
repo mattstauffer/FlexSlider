@@ -28,7 +28,7 @@
     // Store a reference to the slider object
     $.data(el, "flexslider", slider);
     
-    // Privat slider methods
+    // Private slider methods
     methods = {
       init: function() {
         slider.animating = false;
@@ -87,7 +87,7 @@
         
         // KEYBOARD:
         if (vars.keyboard && ($(slider.containerSelector).length === 1 || vars.multipleKeyboard)) {
-          $(document).bind('keyup', function(event) {
+          $(document).bind('keyup.flexslider', function(event) {
             var keycode = event.keyCode;
             if (!slider.animating && (keycode === 39 || keycode === 37)) {
               var target = (keycode === 39) ? slider.getTarget('next') :
@@ -98,7 +98,7 @@
         }
         // MOUSEWHEEL:
         if (vars.mousewheel) {
-          slider.bind('mousewheel', function(event, delta, deltaX, deltaY) {
+          slider.bind('mousewheel.flexslider', function(event, delta, deltaX, deltaY) {
             event.preventDefault();
             var target = (delta < 0) ? slider.getTarget('next') : slider.getTarget('prev');
             slider.flexAnimate(target, vars.pauseOnAction);
@@ -125,7 +125,7 @@
         if (touch && vars.touch) methods.touch();
         
         // FADE&&SMOOTHHEIGHT || SLIDE:
-        if (!fade || (fade && vars.smoothHeight)) $(window).bind("resize focus", methods.resize);
+        if (!fade || (fade && vars.smoothHeight)) $(window).bind("resize.flexslider focus.flexslider", methods.resize);
         
         
         // API: start() Callback
@@ -200,7 +200,7 @@
           slider.controlNav = slider.manualControls;
           methods.controlNav.active();
           
-          slider.controlNav.live(eventType, function(event) {
+          slider.controlNav.live(eventType+'.flexslider', function(event) {
             event.preventDefault();
             var $this = $(this),
                 target = slider.controlNav.index($this);
@@ -212,7 +212,7 @@
           });
           // Prevent iOS click event bug
           if (touch) {
-            slider.controlNav.live("click touchstart", function(event) {
+            slider.controlNav.live("click.flexslider touchstart.flexslider", function(event) {
               event.preventDefault();
             });
           }
@@ -251,14 +251,14 @@
         
           methods.directionNav.update();
         
-          slider.directionNav.bind(eventType, function(event) {
+          slider.directionNav.bind(eventType+'.flexslider', function(event) {
             event.preventDefault();
             var target = ($(this).hasClass(namespace + 'next')) ? slider.getTarget('next') : slider.getTarget('prev');
             slider.flexAnimate(target, vars.pauseOnAction);
           });
           // Prevent iOS click event bug
           if (touch) {
-            slider.directionNav.bind("click touchstart", function(event) {
+            slider.directionNav.bind("click.flexslider touchstart.flexslider", function(event) {
               event.preventDefault();
             });
           }
@@ -295,7 +295,7 @@
 
           methods.pausePlay.update((vars.slideshow) ? namespace + 'pause' : namespace + 'play');
 
-          slider.pausePlay.bind(eventType, function(event) {
+          slider.pausePlay.bind(eventType+'.flexslider', function(event) {
             event.preventDefault();
             if ($(this).hasClass(namespace + 'pause')) {
               slider.manualPause = true;
@@ -309,7 +309,7 @@
           });
           // Prevent iOS click event bug
           if (touch) {
-            slider.pausePlay.bind("click touchstart", function(event) {
+            slider.pausePlay.bind("click.flexslider touchstart.flexslider", function(event) {
               event.preventDefault();
             });
           }
@@ -505,8 +505,8 @@
               slider.animating = false;
               slider.currentSlide = slider.animatingTo;
             }
-            slider.container.unbind("webkitTransitionEnd transitionend");
-            slider.container.bind("webkitTransitionEnd transitionend", function() {
+            slider.container.unbind("webkitTransitionEnd.flexslider transitionend.flexslider");
+            slider.container.bind("webkitTransitionEnd.flexslider transitionend.flexslider", function() {
               slider.wrapup(dimension);
             });
           } else {
@@ -800,6 +800,60 @@
       // FlexSlider: removed() Callback
       vars.removed(slider);
     }
+    slider.destroy = function() {
+      var namespace = vars.namespace;
+
+      // Turn off any timers
+      clearInterval( slider.animatedSlides );
+
+      // Un-bind and un-live elements
+      slider
+        .children()
+        .andSelf()
+        .unbind('.flexslider')
+        .die('.flexslider');
+
+      // Un-bind and un-live manual controls
+      if (vars.controlNav && slider.manualControls) {
+        // @todo:
+      }
+
+      // Un-bind touch/swipe events
+
+      // Unbind isNavFor type stuff
+      // @todo:
+
+      // Delete generated nav (don't need to unbind, right? )
+      if(vars.controlNav && !slider.manualControls) {
+        $('.' + namespace + 'control-nav').remove();
+      }
+
+      // Delete generated forward/back
+      if(vars.directionNav) {
+        $('.' + namespace + 'direction-nav').remove();
+      }
+
+
+      // Un-bind hover
+      if (vars.slideshow && vars.pauseOnHover) { // @todo: Do we even have access to these?
+        // @todo: Make it use bind('mouseenter mouseleave') and be smarter so we can namespace it
+        slider.unbind('mouseenter mouseleave');
+      }
+
+      // Trim classes and CSS
+      slider
+        .children()
+        .andSelf()
+        .removeClass('flex-active-slide')
+        .removeAttr('style');
+
+      // Un-set data
+      slider
+        .removeData('flexslider');
+        
+      vars.start(slider);
+    }
+    
     
     //FlexSlider: Initialize
     methods.init();
@@ -863,7 +917,8 @@
     after: function(){},            //Callback: function(slider) - Fires after each slider animation completes
     end: function(){},              //Callback: function(slider) - Fires when the slider reaches the last slide (asynchronous)
     added: function(){},            //{NEW} Callback: function(slider) - Fires after a slide is added
-    removed: function(){}           //{NEW} Callback: function(slider) - Fires after a slide is removed
+    removed: function(){},          //{NEW} Callback: function(slider) - Fires after a slide is removed
+    destroyed: function(){}         //{NEW} Callback: function(slider) - Fires after the slideshow is destroyed
   }
 
 
@@ -893,6 +948,7 @@
         case "next": $slider.flexAnimate($slider.getTarget("next"), true); break;
         case "prev":
         case "previous": $slider.flexAnimate($slider.getTarget("prev"), true); break;
+        case "destroy": $slider.destroy(); break;
         default: if (typeof options === "number") $slider.flexAnimate(options, true);
       }
     }
