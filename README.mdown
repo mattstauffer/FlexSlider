@@ -18,7 +18,7 @@ http://www.woothemes.com/flexslider/ - Copyright (c) 2013 WooThemes
 -----
 
 ## Fork notes
-A fork of FlexSlider to allow for control over fade crossover
+A fork of FlexSlider to allow for control over fade crossover and includes fix to handle unreliable transitionend firing. 
 
 ## General Notes
 FlexSlider is no longer licensed under the MIT license. FlexSlider now shares the common licensed used for all WooThemes themes, GPLv2.
