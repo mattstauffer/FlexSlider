@@ -720,12 +720,24 @@
               slider.currentSlide = slider.animatingTo;
             }
             
+            // From https://github.com/woothemes/FlexSlider/pull/1007
+            // Webkit doesn't reliably fire the transition end event in some
+            // circumstances, so add a timer fallback but make sure only one
+            // actually takes effect.
+            var wrapupFunc = (function() {
+              var executed = false;
+              return function() {
+                if (!executed) {
+                  slider.wrapup(dimension);
+                }
+                executed = true;
+              }
+            })();
+
             // Unbind previous transitionEnd events and re-bind new transitionEnd event
             slider.container.unbind("webkitTransitionEnd transitionend");
-            slider.container.bind("webkitTransitionEnd transitionend", function() {
-              clearTimeout(slider.ensureAnimationEnd);
-              slider.wrapup(dimension);
-            });
+            slider.container.bind("webkitTransitionEnd transitionend", wrapupFunc);
+            setTimeout(wrapupFunc, slider.vars.animationSpeed + 200);
 
             // Insurance for the ever-so-fickle transitionEnd event
             clearTimeout(slider.ensureAnimationEnd);
